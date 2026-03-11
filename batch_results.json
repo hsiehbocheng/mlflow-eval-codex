@@ -1,0 +1,29 @@
+[
+  {
+    "case_id": "c1",
+    "returncode": 0,
+    "expected": "dataclass",
+    "auto_pass": true,
+    "human_pass": null,
+    "human_feedback": "",
+    "final_pass": true
+  },
+  {
+    "case_id": "c2",
+    "returncode": 0,
+    "expected": "mcp",
+    "auto_pass": true,
+    "human_pass": null,
+    "human_feedback": "",
+    "final_pass": true
+  },
+  {
+    "case_id": "c3",
+    "returncode": 0,
+    "expected": "print",
+    "auto_pass": true,
+    "human_pass": null,
+    "human_feedback": "",
+    "final_pass": true
+  }
+]

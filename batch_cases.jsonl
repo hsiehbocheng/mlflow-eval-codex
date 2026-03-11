@@ -1,0 +1,3 @@
+{"case_id":"c1","prompt":"用一句話解釋什麼是 Python dataclass","expected":"dataclass"}
+{"case_id":"c2","prompt":"請列出目前可用的 mcp servers","expected":"mcp"}
+{"case_id":"c3","prompt":"寫一段 python3 hello world 程式","expected":"print"}

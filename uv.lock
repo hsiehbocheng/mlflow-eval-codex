@@ -218,6 +218,7 @@ dependencies = [
     { name = "opentelemetry-api" },
     { name = "opentelemetry-exporter-otlp-proto-http" },
     { name = "opentelemetry-sdk" },
+    { name = "pandas" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
 ]
@@ -228,6 +229,7 @@ requires-dist = [
     { name = "opentelemetry-api", specifier = ">=1.26.0" },
     { name = "opentelemetry-exporter-otlp-proto-http", specifier = ">=1.26.0" },
     { name = "opentelemetry-sdk", specifier = ">=1.26.0" },
+    { name = "pandas", specifier = ">=2.3.3" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "pyyaml", specifier = ">=6.0.3" },
 ]
