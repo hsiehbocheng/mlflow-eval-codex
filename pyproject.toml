@@ -1,0 +1,14 @@
+[project]
+name = "codex-test"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "mlflow>=3.10.1",
+    "opentelemetry-api>=1.26.0",
+    "opentelemetry-exporter-otlp-proto-http>=1.26.0",
+    "opentelemetry-sdk>=1.26.0",
+    "python-dotenv>=1.2.2",
+    "pyyaml>=6.0.3",
+]
