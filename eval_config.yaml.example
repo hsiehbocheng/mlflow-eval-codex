@@ -1,0 +1,12 @@
+input_file: "batch_cases.jsonl"
+
+# Prefer experiment_id on Databricks.
+experiment_id: "4439623448865416"
+experiment_name:
+
+run_name: "codex-eval"
+max_workers: 4
+keep_existing_session_traces: false
+dotenv_path: ".env"
+log_results_artifact: true
+# output_path: "batch_eval_results.json"  # 若要落地本機檔案再開啟
