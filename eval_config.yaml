@@ -7,6 +7,13 @@ experiment_name:
 run_name: "codex-eval"
 max_workers: 4
 keep_existing_session_traces: false
+codex_model: "gpt-5.2"
+codex_reasoning_effort: "low"  # low / medium / high
+codex_cd: "/Users/bocheng/個人資料/Certificate"  # 可填 "pwd" 或絕對路徑
+codex_skip_git_repo_check: true
+# codex_config_overrides:
+#   - 'model_provider="openai"'
+#   - 'sandbox_workspace_write.network_access=true'
 dotenv_path: ".env"
 log_results_artifact: true
 # output_path: "batch_eval_results.json"  # 若要落地本機檔案再開啟

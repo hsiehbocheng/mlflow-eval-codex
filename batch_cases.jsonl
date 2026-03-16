@@ -1,3 +1,1 @@
-{"case_id":"c1","inputs":"用一句話解釋什麼是 Python dataclass","expectations":"dataclass"}
-{"case_id":"c2","inputs":"請列出目前可用的 mcp servers","expectations":"mcp"}
-{"case_id":"c3","inputs":"寫一段 python3 hello world 程式","expectations":"print"}
+{"case_id":"c1","inputs":"執行 ls 確認目前專案內容","expectations":""}

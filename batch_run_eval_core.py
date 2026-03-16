@@ -30,6 +30,11 @@ class BatchEvalConfig:
     run_name: str = "codex-batch-eval"
     max_workers: int = 4
     keep_existing_session_traces: bool = False
+    codex_model: str | None = None
+    codex_reasoning_effort: str | None = None
+    codex_cd: str | None = None
+    codex_config_overrides: list[str] | None = None
+    codex_skip_git_repo_check: bool = False
     dotenv_path: str = ".env"
     output_path: str | None = None
     log_results_artifact: bool = True
@@ -41,6 +46,8 @@ class BatchEvalConfig:
             raise RuntimeError("dataset_artifact_path is required when dataset_run_id is provided.")
         if self.max_workers <= 0:
             raise RuntimeError("max_workers must be > 0.")
+        if self.codex_reasoning_effort and self.codex_reasoning_effort not in {"low", "medium", "high"}:
+            raise RuntimeError("codex_reasoning_effort must be one of: low, medium, high")
 
 
 def load_config_from_yaml(path: str) -> BatchEvalConfig:
@@ -59,6 +66,11 @@ def load_config_from_yaml(path: str) -> BatchEvalConfig:
         run_name=str(raw.get("run_name", "codex-batch-eval")),
         max_workers=int(raw.get("max_workers", 4)),
         keep_existing_session_traces=bool(raw.get("keep_existing_session_traces", False)),
+        codex_model=raw.get("codex_model"),
+        codex_reasoning_effort=raw.get("codex_reasoning_effort"),
+        codex_cd=raw.get("codex_cd"),
+        codex_config_overrides=raw.get("codex_config_overrides"),
+        codex_skip_git_repo_check=bool(raw.get("codex_skip_git_repo_check", False)),
         dotenv_path=str(raw.get("dotenv_path", ".env")),
         output_path=str(raw["output_path"]) if raw.get("output_path") else None,
         log_results_artifact=bool(raw.get("log_results_artifact", True)),
@@ -160,9 +172,27 @@ def _extract_session_id_from_codex_stdout(stdout: str) -> str:
     return ""
 
 
-def _run_one_case(case: dict[str, Any]) -> dict[str, Any]:
+def _build_codex_exec_cmd(prompt: str, cfg: BatchEvalConfig) -> list[str]:
+    cmd = ["codex", "exec", "--json"]
+    if cfg.codex_model:
+        cmd.extend(["-m", cfg.codex_model])
+    if cfg.codex_reasoning_effort:
+        cmd.extend(["-c", f'model_reasoning_effort="{cfg.codex_reasoning_effort}"'])
+    if cfg.codex_config_overrides:
+        for item in cfg.codex_config_overrides:
+            cmd.extend(["-c", str(item)])
+    if cfg.codex_cd:
+        cwd_value = os.getcwd() if cfg.codex_cd == "pwd" else cfg.codex_cd
+        cmd.extend(["-C", str(cwd_value)])
+    if cfg.codex_skip_git_repo_check:
+        cmd.append("--skip-git-repo-check")
+    cmd.append(prompt)
+    return cmd
+
+
+def _run_one_case(case: dict[str, Any], cfg: BatchEvalConfig) -> dict[str, Any]:
     prompt = str(case["inputs"])
-    cmd = ["codex", "exec", "--json", prompt]
+    cmd = _build_codex_exec_cmd(prompt, cfg)
     started = time.time_ns()
     proc = subprocess.run(cmd, text=True, capture_output=True)
     ended = time.time_ns()
@@ -179,6 +209,7 @@ def _run_one_case(case: dict[str, Any]) -> dict[str, Any]:
         "stderr_preview": (proc.stderr or "")[:1000],
         "session_id": _extract_session_id_from_codex_stdout(proc.stdout or ""),
         "auto_pass": bool(auto_pass),
+        "command": cmd,
     }
 
 
@@ -227,6 +258,18 @@ def run_batch_eval(cfg: BatchEvalConfig) -> dict[str, Any]:
         mlflow.log_input(dataset, context="evaluation")
         mlflow.log_param("case_count", len(cases))
         mlflow.log_param("max_workers", cfg.max_workers)
+        if cfg.codex_model:
+            mlflow.log_param("codex_model", cfg.codex_model)
+        if cfg.codex_reasoning_effort:
+            mlflow.log_param("codex_reasoning_effort", cfg.codex_reasoning_effort)
+        if cfg.codex_cd:
+            mlflow.log_param("codex_cd", cfg.codex_cd)
+        if cfg.codex_config_overrides:
+            mlflow.log_param(
+                "codex_config_overrides",
+                json.dumps(cfg.codex_config_overrides, ensure_ascii=False),
+            )
+        mlflow.log_param("codex_skip_git_repo_check", cfg.codex_skip_git_repo_check)
         if cfg.dataset_run_id:
             mlflow.log_param("dataset_run_id", cfg.dataset_run_id)
             mlflow.log_param("dataset_artifact_path", cfg.dataset_artifact_path)
@@ -235,7 +278,7 @@ def run_batch_eval(cfg: BatchEvalConfig) -> dict[str, Any]:
 
         results: list[dict[str, Any]] = []
         with ThreadPoolExecutor(max_workers=max(1, cfg.max_workers)) as pool:
-            futures = [pool.submit(_run_one_case, case) for case in cases]
+            futures = [pool.submit(_run_one_case, case, cfg) for case in cases]
             with tqdm(total=len(futures), desc="codex eval", unit="case") as pbar:
                 for fut in as_completed(futures):
                     results.append(fut.result())
